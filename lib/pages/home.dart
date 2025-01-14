@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:window_size/window_size.dart';
 import 'package:native_qr/native_qr.dart';
@@ -10,6 +11,7 @@ import 'package:filo/globals.dart';
 import 'package:filo/api/special/special.dart';
 import 'package:filo/api/api.dart';
 import 'package:filo/ui/theme.dart';
+import 'package:filo/utils/favicon.dart';
 import 'package:flutter/cupertino.dart';
 
 class Home extends StatefulWidget {
@@ -23,6 +25,7 @@ class HomeState extends State<Home> {
   late WebViewController _webviewController;
   String _tempUrl = initialUrl;
   final ValueNotifier<String> _title = ValueNotifier("Filo");
+  final ValueNotifier<String> _faviconUrl = ValueNotifier("");
   final WebviewEventsListener _webviewListener = WebviewEventsListener();
 
   void onUrlChanged(String url) async {
@@ -60,12 +63,17 @@ class HomeState extends State<Home> {
     }
   }
 
+  void onFaviconURLChanged(String faviconUrl) {
+    _faviconUrl.value = faviconUrl;
+  }
+
   @override
   void initState() {
     _webviewController = WebviewManager().createWebView();
     initPl();
     _webviewListener.onUrlChanged = onUrlChanged;
     _webviewListener.onTitleChanged = onTitleChanged;
+    _webviewListener.onFaviconURLChanged = onFaviconURLChanged;
     _webviewListener.onLoadStart = (WebViewController wvc, String? url) {
       wvc.executeJavaScript("navigator.isFilo = true");
       wvc.executeJavaScript(methods.join("\n"));
@@ -110,6 +118,18 @@ class HomeState extends State<Home> {
               color: Theme.of(context).colorScheme.onSurface,
             ),
             Spacer(),
+            ValueListenableBuilder(valueListenable: _faviconUrl, builder: (_, i, __) {
+              return FutureBuilder(future: getFavicon(i, 26), builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError || !snapshot.hasData) {
+                  return Icon(Icons.error);
+                } else {
+                  return snapshot.data!;
+                }
+              });
+            }),
+            SizedBox(width: 18),
             ValueListenableBuilder(
                 valueListenable: _title,
                 builder: (_, t, __) {
