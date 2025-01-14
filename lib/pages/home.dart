@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:window_size/window_size.dart';
 import 'package:native_qr/native_qr.dart';
 import 'package:webview_cef/webview_cef.dart';
-import 'package:webview_cef/src/webview_inject_user_script.dart';
 import 'package:filo/globals.dart';
 import 'package:filo/api/special/special.dart';
 import 'package:filo/api/api.dart';
@@ -17,18 +16,17 @@ class Home extends StatefulWidget {
   const Home({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Home> createState() => HomeState();
 }
 
-class _HomeState extends State<Home> {
+class HomeState extends State<Home> {
   late WebViewController _webviewController;
   String _tempUrl = initialUrl;
-  final ValueNotifier<String> _currentUrl = ValueNotifier(initialUrl);
   final ValueNotifier<String> _title = ValueNotifier("Filo");
   final WebviewEventsListener _webviewListener = WebviewEventsListener();
 
   void onUrlChanged(String url) async {
-    _currentUrl.value = url;
+    currentUrl.value = url;
     final Set<JavascriptChannel> jsChannels = {
       JavascriptChannel(
           name: 'sendMsg',
@@ -40,7 +38,7 @@ class _HomeState extends State<Home> {
             if (jsFunctions[method] != null) {
               r = await jsFunctions[method]!(args);
             } else {
-              r.error = "Unknown method $method";
+              r.error = "UNKNOWN_METHOD";
             }
 
             await _webviewController.sendJavaScriptChannelCallBack(
@@ -64,18 +62,14 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    final ius = InjectUserScripts();
-    ius.add(UserScript('''
-        if (sendMsg == undefined) {
-          location.reload();
-          clear();
-        }
-        ${methods.join("\n")}
-        ''', ScriptInjectTime.LOAD_START));
-    _webviewController = WebviewManager().createWebView(injectUserScripts: ius);
+    _webviewController = WebviewManager().createWebView();
     initPl();
     _webviewListener.onUrlChanged = onUrlChanged;
     _webviewListener.onTitleChanged = onTitleChanged;
+    _webviewListener.onLoadStart = (WebViewController wvc, String? url) {
+      wvc.executeJavaScript("navigator.isFilo = true");
+      wvc.executeJavaScript(methods.join("\n"));
+    };
     _webviewController.setWebviewListener(_webviewListener);
     super.initState();
   }
@@ -93,12 +87,12 @@ class _HomeState extends State<Home> {
 
   Future<void> initPl() async {
     await WebviewManager().initialize(userAgent: "Filo/1.0.0");
-    await _webviewController.initialize(_currentUrl.value);
+    await _webviewController.initialize(currentUrl.value);
     if (!mounted) return;
   }
 
   Future<void> goto() async {
-    await _webviewController.loadUrl(_currentUrl.value);
+    await _webviewController.loadUrl(currentUrl.value);
   }
 
   @override
@@ -180,7 +174,7 @@ class _HomeState extends State<Home> {
                     ),
                     Expanded(
                         child: ValueListenableBuilder(
-                            valueListenable: _currentUrl,
+                            valueListenable: currentUrl,
                             builder: (ctx, c, _) {
                               return Container(
                                   margin: const EdgeInsets.fromLTRB(8, 5, 0, 2),
@@ -208,7 +202,7 @@ class _HomeState extends State<Home> {
                                         filled: true),
                                     initialValue: c,
                                     onFieldSubmitted: (String? v) async {
-                                      _currentUrl.value = _tempUrl;
+                                      currentUrl.value = _tempUrl;
                                       await goto();
                                     },
                                     onChanged: (String v) async {
@@ -219,7 +213,7 @@ class _HomeState extends State<Home> {
                     SizedBox(width: 3),
                     IconButton(
                         onPressed: () async {
-                          _currentUrl.value = _tempUrl;
+                          currentUrl.value = _tempUrl;
                           await goto();
                         },
                         icon: Icon(CupertinoIcons.arrow_right_square_fill,

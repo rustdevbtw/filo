@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:catppuccin_flutter/catppuccin_flutter.dart';
+import 'package:filo/pages/home.dart';
 import 'package:flutter/material.dart';
 import 'package:filo/utils/prefs.dart';
 
@@ -15,3 +16,5 @@ final bool isDesktop =
 final Flavor frappe = catppuccin.frappe;
 final Flavor latte = catppuccin.latte;
 final String initialUrl = "https://flutter.dev";
+final ValueNotifier<String> currentUrl = ValueNotifier(initialUrl);
+final homeKey = GlobalKey<HomeState>();

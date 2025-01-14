@@ -1,3 +1,4 @@
+import 'package:filo/services/navigator_service.dart';
 import 'package:flutter/material.dart';
 import 'package:filo/globals.dart';
 import 'package:filo/ui/theme.dart';
@@ -20,6 +21,7 @@ class Filo extends StatelessWidget {
               : getCatppuccinTheme(latte),
           home: const Home(),
           debugShowCheckedModeBanner: false,
+          navigatorKey: NavigatorService.navigatorKey,
         );
       },
     );
