@@ -11,14 +11,25 @@ Future<Widget> getFavicon(String url, double size) async {
       final contentType = response.headers['content-type'];
 
       if (contentType != null && contentType.contains('image/svg+xml')) {
-        return SvgPicture.network(url, width: size, height: size, color: Theme.of(NavigatorService.navigatorKey.currentContext!).colorScheme.onSurface);
+        return SvgPicture.network(url,
+            width: size,
+            height: size,
+            color: Theme.of(NavigatorService.navigatorKey.currentContext!)
+                .colorScheme
+                .onSurface);
       } else {
         return Image.network(url, width: size, height: size);
       }
     } else {
-      return Icon(CupertinoIcons.globe, color: Theme.of(NavigatorService.navigatorKey.currentContext!).colorScheme.onSurface);
+      return Icon(CupertinoIcons.globe,
+          color: Theme.of(NavigatorService.navigatorKey.currentContext!)
+              .colorScheme
+              .onSurface);
     }
   } catch (e) {
-    return Icon(CupertinoIcons.globe, color: Theme.of(NavigatorService.navigatorKey.currentContext!).colorScheme.onSurface);
+    return Icon(CupertinoIcons.globe,
+        color: Theme.of(NavigatorService.navigatorKey.currentContext!)
+            .colorScheme
+            .onSurface);
   }
 }

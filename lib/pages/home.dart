@@ -75,7 +75,14 @@ class HomeState extends State<Home> {
     _webviewListener.onTitleChanged = onTitleChanged;
     _webviewListener.onFaviconURLChanged = onFaviconURLChanged;
     _webviewListener.onLoadStart = (WebViewController wvc, String? url) {
+      Color text = isDarkMode.value ? frappe.text : latte.text;
+      Color back = isDarkMode.value ? frappe.surface0 : latte.surface0;
       wvc.executeJavaScript("navigator.isFilo = true");
+      wvc.executeJavaScript('''
+      let st = document.createElement('style');
+      st.innerText = '* { color: rgb(${text.r * 100}% ${text.g * 100}% ${text.b * 100}% / ${text.a * 100}%); backgroundColor: rgb(${back.r * 100}% ${back.g * 100}% ${back.b * 100}% / ${back.a * 100}%); }';
+      document.body.prepend(st);
+      ''');
       wvc.executeJavaScript(methods.join("\n"));
     };
     _webviewController.setWebviewListener(_webviewListener);
@@ -118,17 +125,22 @@ class HomeState extends State<Home> {
               color: Theme.of(context).colorScheme.onSurface,
             ),
             Spacer(),
-            ValueListenableBuilder(valueListenable: _faviconUrl, builder: (_, i, __) {
-              return FutureBuilder(future: getFavicon(i, 26), builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                } else if (snapshot.hasError || !snapshot.hasData) {
-                  return Icon(Icons.error);
-                } else {
-                  return snapshot.data!;
-                }
-              });
-            }),
+            ValueListenableBuilder(
+                valueListenable: _faviconUrl,
+                builder: (_, i, __) {
+                  return FutureBuilder(
+                      future: getFavicon(i, 26),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError || !snapshot.hasData) {
+                          return Icon(Icons.error);
+                        } else {
+                          return snapshot.data!;
+                        }
+                      });
+                }),
             SizedBox(width: 18),
             ValueListenableBuilder(
                 valueListenable: _title,

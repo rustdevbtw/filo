@@ -21,38 +21,33 @@ class Permission {
 
   Future<bool> check() async {
     bool res = false;
-    await showDialog(context: NavigatorService.navigatorKey.currentContext!, builder: (BuildContext ctx) {
-      return AlertDialog(
-          title: Text(permText()),
-          content: reason,
-          actions: [
-            TextButton(
-              onPressed: () {
-                res = false;
-                Navigator.of(ctx).pop();
-              },
-              child: Text(
-                "Deny",
-                style: TextStyle(
-                    color: frappe.red
+    await showDialog(
+        context: NavigatorService.navigatorKey.currentContext!,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+              title: Text(permText()),
+              content: reason,
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    res = false;
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(
+                    "Deny",
+                    style: TextStyle(color: frappe.red),
+                  ),
                 ),
-              ),
-            ),
-            TextButton(
-                onPressed: () {
-                  res = true;
-                  Navigator.of(ctx).pop();
-                },
-                child: Text(
-                    "Allow",
-                    style: TextStyle(
-                        color: Theme.of(ctx).colorScheme.onSurface
-                    )
-                )
-            )
-          ]
-      );
-    });
+                TextButton(
+                    onPressed: () {
+                      res = true;
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Text("Allow",
+                        style: TextStyle(
+                            color: Theme.of(ctx).colorScheme.onSurface)))
+              ]);
+        });
 
     return res;
   }
