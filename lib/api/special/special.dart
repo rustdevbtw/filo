@@ -4,6 +4,7 @@ import 'package:filo/api/api.dart';
 import 'package:filo/api/special/utility/exec.dart';
 import 'package:filo/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:filo/utils/permission.dart';
 
 String wrapMethod(String name) {
   return '''
@@ -33,50 +34,28 @@ Map<String, Future<ApiResult> Function(List<dynamic> args)> jsFunctions = {
 
     String cmd = args[0];
 
-    await showDialog(context: NavigatorService.navigatorKey.currentContext!, builder: (BuildContext ctx) {
-      return AlertDialog(
-        title: Text("A website is using the exec() API"),
-        content: Text.rich(
-          TextSpan(
-            text: "A website is trying to run the command: ",
-            children: <TextSpan>[
-              TextSpan(
+    Permission perm = Permission(perm: "filo::api::exec", website: currentUrl.value, reason: Text.rich(
+        TextSpan(
+          text: "The website is trying to run the command: ",
+          children: <TextSpan>[
+            TextSpan(
                 text: cmd,
                 style: TextStyle(
-                  color: Theme.of(ctx).colorScheme.onSecondary
+                    color: Theme.of(NavigatorService.navigatorKey.currentContext!).colorScheme.onSecondary
                 )
-              )
-            ],
-          )
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              apiResult.error = "ERR_DENIED";
-              Navigator.of(ctx).pop();
-            },
-            child: Text(
-              "Deny",
-              style: TextStyle(
-                color: frappe.red
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-            child: Text(
-              "Allow",
-              style: TextStyle(
-                color: Theme.of(ctx).colorScheme.onSurface
-              )
             )
-          )
-        ]
-      );
-    });
-    apiResult.result = await execApi(args[0]);
+          ],
+        )
+    ));
+
+    bool allowed = await perm.check();
+
+    if (allowed) {
+      apiResult.result = await execApi(args[0]);
+    } else {
+      apiResult.error = "PERMISSION_DENIED";
+    }
+
     return apiResult;
   }
 };
