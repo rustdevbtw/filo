@@ -24,6 +24,16 @@ Map<String, Future<ApiResult> Function(List<dynamic> args)> jsFunctions = {
     apiResult.result = user();
     return apiResult;
   },
+  'window.alert': (List<dynamic> args) async {
+    ApiResult apiResult = ApiResult();
+    showDialog(context: NavigatorService.navigatorKey.currentContext!, builder: (ctx) =>
+      AlertDialog(
+        title: const Text("Alert"),
+        content: Text(args[0]),
+      )
+    );
+    return apiResult;
+  },
   'navigator.exec': (List<dynamic> args) async {
     ApiResult apiResult = ApiResult();
     if (args.isEmpty) {
