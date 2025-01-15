@@ -43,7 +43,7 @@ dependencies:
       ref: 5c51870ced62a00e809ba4b81a846a052d241c9f
   native_qr: ^0.0.3
   webview_cef:
-    path: packages/webview_cef
+    git: https://gitlab.com/filobrowser/webview_cef
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.17
   http: ^1.2.2
