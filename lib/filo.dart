@@ -4,10 +4,6 @@ import 'package:filo/globals.dart';
 import 'package:filo/ui/theme.dart';
 import 'package:filo/pages/home.dart';
 
-class CopyAction extends Intent {
-  const CopyAction();
-}
-
 class Filo extends StatelessWidget {
   const Filo({super.key});
 
