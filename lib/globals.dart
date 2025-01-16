@@ -9,7 +9,8 @@ final Preferences preferences = Preferences();
 final IconData iconLight = Icons.wb_sunny;
 final IconData iconDark = Icons.nights_stay;
 final ValueNotifier<bool> isDarkMode = ValueNotifier(true);
-final ValueNotifier<String> qrScanResult = ValueNotifier("");
+final ValueNotifier<String> qrScanResult =
+    ValueNotifier("Press on the Scan button to continue");
 final bool isMobile = Platform.isAndroid || Platform.isIOS;
 final bool isDesktop =
     Platform.isLinux || Platform.isWindows || Platform.isMacOS;

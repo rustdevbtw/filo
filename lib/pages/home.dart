@@ -2,8 +2,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:window_size/window_size.dart';
 import 'package:native_qr/native_qr.dart';
 import 'package:webview_cef/webview_cef.dart';
@@ -13,6 +13,7 @@ import 'package:filo/api/api.dart';
 import 'package:filo/ui/theme.dart';
 import 'package:filo/utils/favicon.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:filo/utils/overlay.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -80,7 +81,8 @@ class HomeState extends State<Home> {
       wvc.executeJavaScript("navigator.isFilo = true");
       wvc.executeJavaScript('''
       let st = document.createElement('style');
-      st.innerText = '* { color: rgb(${text.r * 100}% ${text.g * 100}% ${text.b * 100}% / ${text.a * 100}%); backgroundColor: rgb(${back.r * 100}% ${back.g * 100}% ${back.b * 100}% / ${back.a * 100}%); }';
+      // st.innerText = '* { color: rgb(${text.r * 100}% ${text.g * 100}% ${text.b * 100}% / ${text.a * 100}%); backgroundColor: rgb(${back.r * 100}% ${back.g * 100}% ${back.b * 100}% / ${back.a * 100}%); }';
+      st.innerText = '* { backgroundColor: white; }';
       document.body.prepend(st);
       ''');
       wvc.executeJavaScript(methods.join("\n"));
@@ -118,29 +120,38 @@ class HomeState extends State<Home> {
         title: Flex(
           direction: Axis.horizontal,
           children: [
+            if (isMobile)
+              IconButton(
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  },
+                  icon: Icon(CupertinoIcons.back),
+                  color: Theme.of(context).colorScheme.onSurface),
             IconButton(
               onPressed: changeTheme,
               tooltip: 'Change Theme',
               icon: Icon(isDarkMode.value ? iconLight : iconDark),
               color: Theme.of(context).colorScheme.onSurface,
             ),
-            Spacer(),
-            ValueListenableBuilder(
-                valueListenable: _faviconUrl,
-                builder: (_, i, __) {
-                  return FutureBuilder(
-                      future: getFavicon(i, 26),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return CircularProgressIndicator();
-                        } else if (snapshot.hasError || !snapshot.hasData) {
-                          return Icon(Icons.error);
-                        } else {
-                          return snapshot.data!;
-                        }
-                      });
-                }),
+            if (isDesktop) Spacer(),
+            if (isMobile) SizedBox(width: 48),
+            if (isDesktop)
+              ValueListenableBuilder(
+                  valueListenable: _faviconUrl,
+                  builder: (_, i, __) {
+                    return FutureBuilder(
+                        future: getFavicon(i, 26),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError || !snapshot.hasData) {
+                            return Icon(Icons.error);
+                          } else {
+                            return snapshot.data!;
+                          }
+                        });
+                  }),
             SizedBox(width: 18),
             ValueListenableBuilder(
                 valueListenable: _title,
@@ -163,23 +174,30 @@ class HomeState extends State<Home> {
       ),
       body: isMobile
           ? Center(
-              child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Theme.of(context).colorScheme.tertiary,
-                    boxShadow: [BoxShadow(blurRadius: 5)],
-                  ),
-                  padding: const EdgeInsets.all(16.0),
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: qrScanResult,
-                    builder: (ctx, other, _) {
-                      return Text(other);
-                    },
-                  )))
+              child: ValueListenableBuilder(
+                  valueListenable: qrScanResult,
+                  builder: (ctx, q, _) {
+                    return Container(
+                      padding: EdgeInsets.all(16),
+                      margin: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Theme.of(ctx).colorScheme.secondary),
+                      child: Text(q),
+                    );
+                  }),
+            )
           : Column(children: <Widget>[
               Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: Row(children: <Widget>[
+                    IconButton(
+                        onPressed: () async {
+                          print("UNIMPLEMENTED!");
+                        },
+                        tooltip: "Open Sidebar",
+                        icon: Icon(CupertinoIcons.sidebar_left),
+                        color: Theme.of(context).colorScheme.onSurface),
                     IconButton(
                       onPressed: () async {
                         await _webviewController.goBack();
@@ -205,52 +223,91 @@ class HomeState extends State<Home> {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                     Expanded(
-                        child: ValueListenableBuilder(
-                            valueListenable: currentUrl,
-                            builder: (ctx, c, _) {
-                              return Container(
-                                  margin: const EdgeInsets.fromLTRB(8, 5, 0, 2),
-                                  child: TextFormField(
-                                    key: UniqueKey(),
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSecondary,
-                                        fontSize: 15),
-                                    textAlign: TextAlign.center,
-                                    cursorColor: frappe.subtext0,
-                                    decoration: InputDecoration(
-                                        isDense: true,
-                                        border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(18)),
-                                            borderSide: BorderSide(
-                                                width: 0,
-                                                style: BorderStyle.none)),
-                                        hintText: "Enter the URL",
-                                        fillColor: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        filled: true),
-                                    initialValue: c,
-                                    onFieldSubmitted: (String? v) async {
-                                      currentUrl.value = _tempUrl;
-                                      await goto();
+                        child: MouseRegion(
+                            cursor: SystemMouseCursors.text,
+                            child: ValueListenableBuilder(
+                                valueListenable: currentUrl,
+                                builder: (ctx, c, _) {
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      FocusNode focusNode = FocusNode();
+                                      FocusScope.of(context)
+                                          .requestFocus(focusNode);
+                                      late OverlayEntry overlayEntry;
+                                      overlayEntry = await openOverlay(
+                                          context: context,
+                                          child: Container(
+                                              margin: const EdgeInsets.fromLTRB(
+                                                  8, 5, 0, 2),
+                                              padding: EdgeInsets.all(20),
+                                              child: TextFormField(
+                                                autofocus: true,
+                                                key: UniqueKey(),
+                                                style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSecondary,
+                                                    fontSize: 15),
+                                                textAlign: TextAlign.center,
+                                                cursorColor: frappe.subtext0,
+                                                decoration: InputDecoration(
+                                                    isDense: true,
+                                                    border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    12)),
+                                                        borderSide: BorderSide(
+                                                            width: 0,
+                                                            style: BorderStyle
+                                                                .none)),
+                                                    hintText: "Enter the URL",
+                                                    fillColor: Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary,
+                                                    filled: true,
+                                                    suffixIcon: Icon(
+                                                        CupertinoIcons
+                                                            .right_chevron)),
+                                                initialValue: currentUrl.value,
+                                                onFieldSubmitted:
+                                                    (String? v) async {
+                                                  currentUrl.value = _tempUrl;
+                                                  await goto();
+                                                  overlayEntry.remove();
+                                                },
+                                                onChanged: (String v) async {
+                                                  _tempUrl = v;
+                                                },
+                                              )));
                                     },
-                                    onChanged: (String v) async {
-                                      _tempUrl = v;
-                                    },
-                                  ));
-                            })),
+                                    child: Container(
+                                      margin:
+                                          const EdgeInsets.fromLTRB(8, 5, 0, 2),
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Theme.of(ctx).colorScheme.secondary,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                            color: Theme.of(ctx)
+                                                .colorScheme
+                                                .onSurface,
+                                            width: 0.5),
+                                      ),
+                                      child:
+                                          Text(c, textAlign: TextAlign.center),
+                                    ),
+                                  );
+                                }))),
                     SizedBox(width: 3),
                     IconButton(
-                        onPressed: () async {
-                          currentUrl.value = _tempUrl;
-                          await goto();
+                        onPressed: () {
+                          print("UNIMPLEMENTED");
                         },
-                        icon: Icon(CupertinoIcons.arrow_right_square_fill,
-                            size: 32),
-                        hoverColor: Theme.of(context).colorScheme.surface),
+                        icon: Icon(CupertinoIcons.bookmark),
+                        tooltip: "Bookmark this page",
+                        color: Theme.of(context).colorScheme.onSurface),
                     IconButton(
                       onPressed: () async {
                         await _webviewController.openDevTools();
@@ -268,7 +325,6 @@ class HomeState extends State<Home> {
                         : _webviewController.loadingWidget;
                   })
             ]),
-      // : Webview(url: "https://google.com"))),
       floatingActionButton: isMobile
           ? FloatingActionButton(
               onPressed: () async {

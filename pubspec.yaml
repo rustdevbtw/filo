@@ -65,7 +65,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/images/icon.png
+    - assets/images/
   fonts:
     - family: Cas
       fonts:
