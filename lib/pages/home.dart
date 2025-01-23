@@ -181,38 +181,40 @@ class HomeState extends State<Home> {
                   }),
             )
           : Column(children: <Widget>[
-            Container(margin: EdgeInsets.all(18), child: VlBar(
-              leftWidgets: <Widget>[
-                VlButton(
-                  onPressed: () async {
-                    print("UNIMPLEMENTED!");
-                  },
-                  tooltip: "Open Sidebar",
-                  icon: Icon(CupertinoIcons.sidebar_left),
-                ),
-                VlButton(
-                  onPressed: () async {
-                    await _webviewController.goBack();
-                  },
-                  tooltip: 'Back',
-                  icon: Icon(CupertinoIcons.back),
-                ),
-                VlButton(
-                  onPressed: () async {
-                    await _webviewController.reload();
-                  },
-                  tooltip: 'Refresh',
-                  icon: Icon(CupertinoIcons.refresh),
-                ),
-                VlButton(
-                  onPressed: () async {
-                    await _webviewController.goForward();
-                  },
-                  tooltip: 'Forward',
-                  icon: Icon(CupertinoIcons.forward),
-                ),
-              ],
-              center: MouseRegion(
+              Container(
+                  margin: EdgeInsets.all(18),
+                  child: VlBar(
+                    leftWidgets: <Widget>[
+                      VlButton(
+                        onPressed: () async {
+                          print("UNIMPLEMENTED!");
+                        },
+                        tooltip: "Open Sidebar",
+                        icon: Icon(CupertinoIcons.sidebar_left),
+                      ),
+                      VlButton(
+                        onPressed: () async {
+                          await _webviewController.goBack();
+                        },
+                        tooltip: 'Back',
+                        icon: Icon(CupertinoIcons.back),
+                      ),
+                      VlButton(
+                        onPressed: () async {
+                          await _webviewController.reload();
+                        },
+                        tooltip: 'Refresh',
+                        icon: Icon(CupertinoIcons.refresh),
+                      ),
+                      VlButton(
+                        onPressed: () async {
+                          await _webviewController.goForward();
+                        },
+                        tooltip: 'Forward',
+                        icon: Icon(CupertinoIcons.forward),
+                      ),
+                    ],
+                    center: MouseRegion(
                         cursor: SystemMouseCursors.text,
                         child: ValueListenableBuilder(
                             valueListenable: currentUrl,
@@ -243,21 +245,20 @@ class HomeState extends State<Home> {
                                                 isDense: true,
                                                 border: OutlineInputBorder(
                                                     borderRadius:
-                                                    BorderRadius.all(
-                                                        Radius.circular(
-                                                            12)),
+                                                        BorderRadius.all(
+                                                            Radius.circular(
+                                                                12)),
                                                     borderSide: BorderSide(
                                                         width: 0,
-                                                        style: BorderStyle
-                                                            .none)),
+                                                        style:
+                                                            BorderStyle.none)),
                                                 hintText: "Enter the URL",
                                                 fillColor: Theme.of(context)
                                                     .colorScheme
                                                     .secondary,
                                                 filled: true,
-                                                suffixIcon: Icon(
-                                                    CupertinoIcons
-                                                        .right_chevron)),
+                                                suffixIcon: Icon(CupertinoIcons
+                                                    .right_chevron)),
                                             initialValue: currentUrl.value,
                                             onFieldSubmitted:
                                                 (String? v) async {
@@ -271,41 +272,37 @@ class HomeState extends State<Home> {
                                           )));
                                 },
                                 child: Container(
-                                  margin:
-                                  const EdgeInsets.fromLTRB(8, 5, 0, 2),
+                                  margin: const EdgeInsets.fromLTRB(8, 5, 0, 2),
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color:
-                                    Theme.of(ctx).colorScheme.secondary,
+                                    color: Theme.of(ctx).colorScheme.secondary,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                        color: Theme.of(ctx)
-                                            .colorScheme
-                                            .onSurface,
+                                        color:
+                                            Theme.of(ctx).colorScheme.onSurface,
                                         width: 0.5),
                                   ),
-                                  child:
-                                  Text(c, textAlign: TextAlign.center),
+                                  child: Text(c, textAlign: TextAlign.center),
                                 ),
                               );
                             })),
-              rightWidgets: <Widget>[
-                VlButton(
-                  onPressed: () {
-                    print("UNIMPLEMENTED");
-                  },
-                  icon: Icon(CupertinoIcons.star),
-                  tooltip: "Bookmark this page",
-                ),
-                VlButton(
-                  onPressed: () async {
-                    await _webviewController.openDevTools();
-                  },
-                  tooltip: 'Open DevTools',
-                  icon: Icon(Icons.developer_mode_outlined),
-                ),
-              ],
-            )),
+                    rightWidgets: <Widget>[
+                      VlButton(
+                        onPressed: () {
+                          print("UNIMPLEMENTED");
+                        },
+                        icon: Icon(CupertinoIcons.star),
+                        tooltip: "Bookmark this page",
+                      ),
+                      VlButton(
+                        onPressed: () async {
+                          await _webviewController.openDevTools();
+                        },
+                        tooltip: 'Open DevTools',
+                        icon: Icon(Icons.developer_mode_outlined),
+                      ),
+                    ],
+                  )),
               ValueListenableBuilder(
                   valueListenable: _webviewController,
                   builder: (ctx, ct, _) {

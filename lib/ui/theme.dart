@@ -41,10 +41,14 @@ ThemeData getCatppuccinTheme(Flavor flavor) {
 
 ThemeData checkDarkMode(BuildContext ctx) {
   return (preferences.getBool("filo.ui.is_dark_theme") ??
-      MediaQuery.of(ctx).platformBrightness == Brightness.dark) ? darkTheme : lightTheme;
+          MediaQuery.of(ctx).platformBrightness == Brightness.dark)
+      ? darkTheme
+      : lightTheme;
 }
 
 void changeTheme() {
-  currentTheme.value = (currentTheme.value == darkTheme) ? lightTheme : darkTheme;
-  preferences.setBool("filo.ui.is_dark_theme", (currentTheme.value == darkTheme));
+  currentTheme.value =
+      (currentTheme.value == darkTheme) ? lightTheme : darkTheme;
+  preferences.setBool(
+      "filo.ui.is_dark_theme", (currentTheme.value == darkTheme));
 }
