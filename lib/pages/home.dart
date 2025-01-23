@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:veil/veil.dart';
 import 'package:window_size/window_size.dart';
 import 'package:native_qr/native_qr.dart';
 import 'package:webview_cef/webview_cef.dart';
@@ -76,12 +77,9 @@ class HomeState extends State<Home> {
     _webviewListener.onTitleChanged = onTitleChanged;
     _webviewListener.onFaviconURLChanged = onFaviconURLChanged;
     _webviewListener.onLoadStart = (WebViewController wvc, String? url) {
-      Color text = isDarkMode.value ? frappe.text : latte.text;
-      Color back = isDarkMode.value ? frappe.surface0 : latte.surface0;
       wvc.executeJavaScript("navigator.isFilo = true");
       wvc.executeJavaScript('''
       let st = document.createElement('style');
-      // st.innerText = '* { color: rgb(${text.r * 100}% ${text.g * 100}% ${text.b * 100}% / ${text.a * 100}%); backgroundColor: rgb(${back.r * 100}% ${back.g * 100}% ${back.b * 100}% / ${back.a * 100}%); }';
       st.innerText = '* { backgroundColor: white; }';
       document.body.prepend(st);
       ''');
@@ -114,63 +112,58 @@ class HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Flex(
-          direction: Axis.horizontal,
-          children: [
-            if (isMobile)
-              IconButton(
-                  onPressed: () {
-                    SystemNavigator.pop();
-                  },
-                  icon: Icon(CupertinoIcons.back),
-                  color: Theme.of(context).colorScheme.onSurface),
-            IconButton(
-              onPressed: changeTheme,
-              tooltip: 'Change Theme',
-              icon: Icon(isDarkMode.value ? iconLight : iconDark),
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            if (isDesktop) Spacer(),
-            if (isMobile) SizedBox(width: 48),
-            if (isDesktop)
-              ValueListenableBuilder(
-                  valueListenable: _faviconUrl,
-                  builder: (_, i, __) {
-                    return FutureBuilder(
-                        future: getFavicon(i, 26),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return CircularProgressIndicator();
-                          } else if (snapshot.hasError || !snapshot.hasData) {
-                            return Icon(Icons.error);
-                          } else {
-                            return snapshot.data!;
-                          }
-                        });
-                  }),
-            SizedBox(width: 18),
-            ValueListenableBuilder(
-                valueListenable: _title,
-                builder: (_, t, __) {
-                  return Text(t);
-                }),
-            Spacer(),
-            if (isDesktop)
-              IconButton(
-                onPressed: () async {
-                  exit(0);
+    return VlPage(
+      appBar: VlAppBar(
+        leftWidgets: <Widget>[
+          if (isMobile)
+            VlButton(
+                onPressed: () {
+                  SystemNavigator.pop();
                 },
-                tooltip: 'Close',
-                icon: Icon(Icons.close),
-                color: frappe.red,
-              ),
-          ],
-        ),
-        centerTitle: true,
+                icon: Icon(CupertinoIcons.back)),
+          VlButton(
+            onPressed: changeTheme,
+            tooltip: 'Change Theme',
+            icon:
+                Icon((currentTheme.value == darkTheme) ? iconDark : iconLight),
+          ),
+        ],
+        centerWidgets: <Widget>[
+          if (isDesktop)
+            ValueListenableBuilder(
+                valueListenable: _faviconUrl,
+                builder: (_, i, __) {
+                  return FutureBuilder(
+                      future: getFavicon(i, 26),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator();
+                        } else if (snapshot.hasError || !snapshot.hasData) {
+                          return Icon(Icons.error);
+                        } else {
+                          return snapshot.data!;
+                        }
+                      });
+                }),
+          SizedBox(width: 18),
+          ValueListenableBuilder(
+              valueListenable: _title,
+              builder: (_, t, __) {
+                return Text(t);
+              }),
+        ],
+        rightWidgets: <Widget>[
+          if (isDesktop)
+            VlButton(
+              onPressed: () async {
+                exit(0);
+              },
+              tooltip: 'Close',
+              icon: Icon(Icons.close),
+              color: frappe.red,
+            ),
+        ],
       ),
       body: isMobile
           ? Center(
@@ -188,135 +181,131 @@ class HomeState extends State<Home> {
                   }),
             )
           : Column(children: <Widget>[
-              Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Row(children: <Widget>[
-                    IconButton(
-                        onPressed: () async {
-                          print("UNIMPLEMENTED!");
-                        },
-                        tooltip: "Open Sidebar",
-                        icon: Icon(CupertinoIcons.sidebar_left),
-                        color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(
-                      onPressed: () async {
-                        await _webviewController.goBack();
-                      },
-                      tooltip: 'Back',
-                      icon: Icon(Icons.arrow_back_ios_sharp),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        await _webviewController.reload();
-                      },
-                      tooltip: 'Refresh',
-                      icon: Icon(Icons.refresh),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        await _webviewController.goForward();
-                      },
-                      tooltip: 'Forward',
-                      icon: Icon(Icons.arrow_forward_ios_sharp),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    Expanded(
-                        child: MouseRegion(
-                            cursor: SystemMouseCursors.text,
-                            child: ValueListenableBuilder(
-                                valueListenable: currentUrl,
-                                builder: (ctx, c, _) {
-                                  return GestureDetector(
-                                    onTap: () async {
-                                      FocusNode focusNode = FocusNode();
-                                      FocusScope.of(context)
-                                          .requestFocus(focusNode);
-                                      late OverlayEntry overlayEntry;
-                                      overlayEntry = await openOverlay(
-                                          context: context,
-                                          child: Container(
-                                              margin: const EdgeInsets.fromLTRB(
-                                                  8, 5, 0, 2),
-                                              padding: EdgeInsets.all(20),
-                                              child: TextFormField(
-                                                autofocus: true,
-                                                key: UniqueKey(),
-                                                style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSecondary,
-                                                    fontSize: 15),
-                                                textAlign: TextAlign.center,
-                                                cursorColor: frappe.subtext0,
-                                                decoration: InputDecoration(
-                                                    isDense: true,
-                                                    border: OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    12)),
-                                                        borderSide: BorderSide(
-                                                            width: 0,
-                                                            style: BorderStyle
-                                                                .none)),
-                                                    hintText: "Enter the URL",
-                                                    fillColor: Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary,
-                                                    filled: true,
-                                                    suffixIcon: Icon(
-                                                        CupertinoIcons
-                                                            .right_chevron)),
-                                                initialValue: currentUrl.value,
-                                                onFieldSubmitted:
-                                                    (String? v) async {
-                                                  currentUrl.value = _tempUrl;
-                                                  await goto();
-                                                  overlayEntry.remove();
-                                                },
-                                                onChanged: (String v) async {
-                                                  _tempUrl = v;
-                                                },
-                                              )));
-                                    },
-                                    child: Container(
-                                      margin:
-                                          const EdgeInsets.fromLTRB(8, 5, 0, 2),
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Theme.of(ctx).colorScheme.secondary,
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                            color: Theme.of(ctx)
-                                                .colorScheme
-                                                .onSurface,
-                                            width: 0.5),
-                                      ),
-                                      child:
-                                          Text(c, textAlign: TextAlign.center),
-                                    ),
-                                  );
-                                }))),
-                    SizedBox(width: 3),
-                    IconButton(
-                        onPressed: () {
-                          print("UNIMPLEMENTED");
-                        },
-                        icon: Icon(CupertinoIcons.bookmark),
-                        tooltip: "Bookmark this page",
-                        color: Theme.of(context).colorScheme.onSurface),
-                    IconButton(
-                      onPressed: () async {
-                        await _webviewController.openDevTools();
-                      },
-                      tooltip: 'Open DevTools',
-                      icon: Icon(Icons.developer_mode),
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ])),
+            Container(margin: EdgeInsets.all(18), child: VlBar(
+              leftWidgets: <Widget>[
+                VlButton(
+                  onPressed: () async {
+                    print("UNIMPLEMENTED!");
+                  },
+                  tooltip: "Open Sidebar",
+                  icon: Icon(CupertinoIcons.sidebar_left),
+                ),
+                VlButton(
+                  onPressed: () async {
+                    await _webviewController.goBack();
+                  },
+                  tooltip: 'Back',
+                  icon: Icon(CupertinoIcons.back),
+                ),
+                VlButton(
+                  onPressed: () async {
+                    await _webviewController.reload();
+                  },
+                  tooltip: 'Refresh',
+                  icon: Icon(CupertinoIcons.refresh),
+                ),
+                VlButton(
+                  onPressed: () async {
+                    await _webviewController.goForward();
+                  },
+                  tooltip: 'Forward',
+                  icon: Icon(CupertinoIcons.forward),
+                ),
+              ],
+              center: MouseRegion(
+                        cursor: SystemMouseCursors.text,
+                        child: ValueListenableBuilder(
+                            valueListenable: currentUrl,
+                            builder: (ctx, c, _) {
+                              return GestureDetector(
+                                onTap: () async {
+                                  FocusNode focusNode = FocusNode();
+                                  FocusScope.of(context)
+                                      .requestFocus(focusNode);
+                                  late OverlayEntry overlayEntry;
+                                  overlayEntry = await openOverlay(
+                                      context: context,
+                                      child: Container(
+                                          margin: const EdgeInsets.fromLTRB(
+                                              8, 5, 0, 2),
+                                          padding: EdgeInsets.all(20),
+                                          child: TextFormField(
+                                            autofocus: true,
+                                            key: UniqueKey(),
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSecondary,
+                                                fontSize: 15),
+                                            textAlign: TextAlign.center,
+                                            cursorColor: frappe.subtext0,
+                                            decoration: InputDecoration(
+                                                isDense: true,
+                                                border: OutlineInputBorder(
+                                                    borderRadius:
+                                                    BorderRadius.all(
+                                                        Radius.circular(
+                                                            12)),
+                                                    borderSide: BorderSide(
+                                                        width: 0,
+                                                        style: BorderStyle
+                                                            .none)),
+                                                hintText: "Enter the URL",
+                                                fillColor: Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary,
+                                                filled: true,
+                                                suffixIcon: Icon(
+                                                    CupertinoIcons
+                                                        .right_chevron)),
+                                            initialValue: currentUrl.value,
+                                            onFieldSubmitted:
+                                                (String? v) async {
+                                              currentUrl.value = _tempUrl;
+                                              await goto();
+                                              overlayEntry.remove();
+                                            },
+                                            onChanged: (String v) async {
+                                              _tempUrl = v;
+                                            },
+                                          )));
+                                },
+                                child: Container(
+                                  margin:
+                                  const EdgeInsets.fromLTRB(8, 5, 0, 2),
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color:
+                                    Theme.of(ctx).colorScheme.secondary,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                        color: Theme.of(ctx)
+                                            .colorScheme
+                                            .onSurface,
+                                        width: 0.5),
+                                  ),
+                                  child:
+                                  Text(c, textAlign: TextAlign.center),
+                                ),
+                              );
+                            })),
+              rightWidgets: <Widget>[
+                VlButton(
+                  onPressed: () {
+                    print("UNIMPLEMENTED");
+                  },
+                  icon: Icon(CupertinoIcons.star),
+                  tooltip: "Bookmark this page",
+                ),
+                VlButton(
+                  onPressed: () async {
+                    await _webviewController.openDevTools();
+                  },
+                  tooltip: 'Open DevTools',
+                  icon: Icon(Icons.developer_mode_outlined),
+                ),
+              ],
+            )),
               ValueListenableBuilder(
                   valueListenable: _webviewController,
                   builder: (ctx, ct, _) {

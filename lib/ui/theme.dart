@@ -39,12 +39,12 @@ ThemeData getCatppuccinTheme(Flavor flavor) {
   );
 }
 
-bool checkDarkMode(BuildContext ctx) {
-  return preferences.getBool("filo.ui.is_dark_theme") ??
-      MediaQuery.of(ctx).platformBrightness == Brightness.dark;
+ThemeData checkDarkMode(BuildContext ctx) {
+  return (preferences.getBool("filo.ui.is_dark_theme") ??
+      MediaQuery.of(ctx).platformBrightness == Brightness.dark) ? darkTheme : lightTheme;
 }
 
 void changeTheme() {
-  isDarkMode.value = !isDarkMode.value;
-  preferences.setBool("filo.ui.is_dark_theme", isDarkMode.value);
+  currentTheme.value = (currentTheme.value == darkTheme) ? lightTheme : darkTheme;
+  preferences.setBool("filo.ui.is_dark_theme", (currentTheme.value == darkTheme));
 }

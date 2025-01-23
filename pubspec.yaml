@@ -42,6 +42,8 @@ dependencies:
       path: plugins/window_size
       ref: 5c51870ced62a00e809ba4b81a846a052d241c9f
   native_qr: ^0.0.3
+  veil:
+    git: https://gitlab.com/filobrowser/veil.git
   webview_cef:
     git: https://gitlab.com/filobrowser/webview_cef
   cupertino_icons: ^1.0.8
